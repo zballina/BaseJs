@@ -88,7 +88,7 @@ function count_records_select(table, select, params) {
 }
 
 function count_records_sql(sql, params) {
-    return connection.db.one(sql, params, a => a.count);
+    return connection.db.one(sql, params, a => +a.count);
 }
 
 function get_record(table, conditions, fields) {
