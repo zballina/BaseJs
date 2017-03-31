@@ -27,15 +27,7 @@
 var connection = require('./connection');
 
 function get_records_sql(sql, params) {
-    return new Promise(function (resolve, reject) {
-        connection.db.any(sql, params)
-                .then(function (data) {
-                    resolve(data);
-                })
-                .catch(function (err) {
-                    reject(err);
-                });
-    });
+    return connection.db.any(sql, params);
 }
 
 function get_records_select(table, select, params, sort, fields) {
@@ -96,15 +88,7 @@ function count_records_select(table, select, params) {
 }
 
 function count_records_sql(sql, params) {
-    return new Promise(function (resolve, reject) {
-        connection.db.one(sql, params)
-                .then(function (count) {
-                    resolve(count.count);
-                })
-                .catch(function (err) {
-                    reject(err);
-                });
-    });
+    return connection.db.one(sql, params, a => +a.count);
 }
 
 function get_record(table, conditions, fields) {
@@ -131,15 +115,7 @@ function get_record_select(table, select, params, fields) {
 }
 
 function get_record_sql(sql, params) {
-    return new Promise(function (resolve, reject) {
-        connection.db.one(sql, params)
-                .then(function (data) {
-                    resolve(data);
-                })
-                .catch(function (err) {
-                    reject(err);
-                });
-    });
+    return connection.db.one(sql, params);
 }
 
 function record_exists(table, conditions) {
@@ -175,15 +151,7 @@ function delete_records_select(table, select, params) {
     if (select !== undefined) {
         sql += select.length > 0 ? ' where ' + select : '';
     }
-    return new Promise(function (resolve, reject) {
-        connection.db.result(sql, params)
-                .then(function (result) {
-                    resolve(result.rowCount);
-                })
-                .catch(function (err) {
-                    reject(err);
-                });
-    });
+    return connection.db.result(sql, params, a => a.rowCount);
 }
 
 function fields_insert_into(params) {
@@ -230,20 +198,16 @@ function insert_record(table, record) {
 }
 
 function insert_record_raw(sql, record, table) {
-    return new Promise(function (resolve, reject) {
-        connection.db.task(function (t) {
+        return connection.db.task(function (t) {
             return t.one(sql, record)
                     .then(function (data) {
                         return t.one('select * from ' + table + ' where id = ${id}', {id: data.id});
                     });
-        }).then(function (events) {
-            resolve(events);
         }).catch(function (err) {
             console.log(sql);
             console.log(err);
-            reject(err);
+            throw err;
         });
-    });
 }
 
 function _fields_update(params) {
